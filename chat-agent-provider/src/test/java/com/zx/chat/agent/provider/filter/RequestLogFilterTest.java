@@ -14,6 +14,8 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -33,18 +35,24 @@ class RequestLogFilterTest {
 
     private Logger coreLogger;
 
+    private boolean originalAdditive;
+
     @BeforeEach
     void attachAppender() {
         appender = new CapturingAppender();
         appender.start();
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         coreLogger = context.getLogger(RequestLogFilter.class.getName());
+        originalAdditive = coreLogger.isAdditive();
+        // Keep synthetic private bodies in memory, including on the RED run.
+        coreLogger.setAdditive(false);
         coreLogger.addAppender(appender);
     }
 
     @AfterEach
     void detachAppender() {
         coreLogger.removeAppender(appender);
+        coreLogger.setAdditive(originalAdditive);
         appender.stop();
     }
 
@@ -84,6 +92,36 @@ class RequestLogFilterTest {
         assertThat(appender.only())
             .contains("reqBody={\"name\":\"grand\"}")
             .contains("respBody={\"code\":0}");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "'', /o/v1/chat/completions",
+        "'', /o/v1/chat/completions/stream",
+        "/chat-agent, /o/v1/chat/completions",
+        "/chat-agent, /o/v1/chat/completions/stream",
+        "'', /o/v1/chat;client=web/completions",
+        "'', /o/v1/chat;client=web/completions/stream",
+        "/chat-agent, /o/v1/chat/%63ompletions",
+        "/chat-agent, /o/v1/chat/%63ompletions/stream"
+    })
+    void chatPromptsAndAnswersAreNotBodyLogged(String contextPath, String route) throws Exception {
+        String prompt = "private-chat-prompt-marker";
+        String answer = "private-model-answer-marker";
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", contextPath + route);
+        request.setContextPath(contextPath);
+        request.setContentType("application/json");
+        request.setContent(("{\"message\":\"" + prompt + "\"}").getBytes(StandardCharsets.UTF_8));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        response.setContentType(route.endsWith("/stream") ? "text/event-stream" : "application/json");
+
+        filter.doFilter(request, response, readBodyThenRespond(answer));
+
+        assertThat(response.getContentAsString()).isEqualTo(answer);
+        assertThat(appender.messages().stream().noneMatch(message ->
+            message.contains(prompt) || message.contains(answer)))
+            .as("Chat prompt and model answer must not appear in HTTP body logs")
+            .isTrue();
     }
 
     @Test

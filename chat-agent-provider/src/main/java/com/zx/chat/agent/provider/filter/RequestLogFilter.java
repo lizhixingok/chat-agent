@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.springframework.web.util.UrlPathHelper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -49,11 +50,14 @@ public class RequestLogFilter extends OncePerRequestFilter {
     private static final List<String> LOGGABLE_TYPES = List.of(
         "application/json", "application/xml", "application/x-www-form-urlencoded", "text/");
 
-    /** 探活与文档请求直接放过，不进日志。 */
+    /** 聊天请求不缓存或记录正文，避免泄漏对话内容及阻塞 SSE 输出。 */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return SKIP_PREFIXES.stream().anyMatch(uri::startsWith);
+        String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
+        return SKIP_PREFIXES.stream().anyMatch(uri::startsWith)
+            || "/o/v1/chat/completions".equals(path)
+            || "/o/v1/chat/completions/stream".equals(path);
     }
 
     @Override

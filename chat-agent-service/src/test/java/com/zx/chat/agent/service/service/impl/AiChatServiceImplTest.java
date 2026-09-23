@@ -64,6 +64,8 @@ class AiChatServiceImplTest {
 
         assertThatThrownBy(() -> service.stream("你好").blockLast())
             .isInstanceOf(BizException.class)
+            .satisfies(ex -> assertThat(((BizException) ex).getErrorCode())
+                .isEqualTo(ErrorCode.THIRD_PARTY_ERROR))
             .hasMessage(ErrorCode.THIRD_PARTY_ERROR.getMessage())
             .hasMessageNotContaining("secret");
     }
