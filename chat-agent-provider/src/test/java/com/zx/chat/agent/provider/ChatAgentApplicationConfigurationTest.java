@@ -53,6 +53,10 @@ class ChatAgentApplicationConfigurationTest {
             .isEqualTo("deepseek-chat");
         assertThat(source.getProperty("spring.ai.openai.api-key"))
             .isEqualTo("sk-replace-with-your-deepseek-api-key");
+        assertThat(source.getProperty("spring.ai.openai.embedding.enabled"))
+            .isEqualTo(false);
+        assertThat(source.getProperty("spring.ai.openai.image.enabled"))
+            .isEqualTo(false);
     }
 
     @Test
