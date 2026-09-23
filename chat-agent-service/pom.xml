@@ -15,6 +15,17 @@
     <description>业务层 - 业务逻辑、数据访问</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- 内部模块 -->
         <dependency>
             <groupId>com.zx.chat-agent</groupId>

@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: chat-agent
+  ai:
+    openai:
+      api-key: sk-replace-with-your-deepseek-api-key
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+      embedding:
+        enabled: false
+      image:
+        enabled: false
   main:
     allow-bean-definition-overriding: true
   jackson:

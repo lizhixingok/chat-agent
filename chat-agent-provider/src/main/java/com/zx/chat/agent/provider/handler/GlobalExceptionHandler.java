@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -40,7 +41,11 @@ public class GlobalExceptionHandler {
     /** @RequestBody 上的 @Valid 校验失败。 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RespResult<Void>> handleValidation(MethodArgumentNotValidException ex) {
-        return paramInvalid(describe(ex.getBindingResult()));
+        ResponseEntity<RespResult<Void>> result = paramInvalid(describe(ex.getBindingResult()));
+        // 校验发生在 SSE 建连前，仍返回统一 JSON，不受 Accept: text/event-stream 限制。
+        return ResponseEntity.status(result.getStatusCode())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result.getBody());
     }
 
     /** 表单/query 参数绑定失败。 */

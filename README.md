@@ -79,15 +79,37 @@ mvnw.cmd clean package -DskipTests
 ./mvnw clean package -DskipTests
 ```
 
+## DeepSeek 对话接口
+
+将 `chat-agent-provider/src/main/resources/application.yml` 中的
+`spring.ai.openai.api-key` 替换为有效的 DeepSeek API Key，再启动 provider。
+
+同步调用：
+
+```bash
+curl -X POST http://localhost:8081/o/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"用一句话介绍 Spring AI"}'
+```
+
+流式调用：
+
+```bash
+curl -N -X POST http://localhost:8081/o/v1/chat/completions/stream \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{"message":"用一句话介绍 Spring AI"}'
+```
+
 ## API文档
 
-启动后访问：http://localhost:9090/doc.html
+启动后访问：http://localhost:8081/doc.html
 
 ## 配置说明
 
 ### 端口配置
 
-默认端口：9090，可在 application.yml 中修改。
+默认端口：8081，可在 application.yml 中修改。
 
 ### Apollo 配置中心
 
