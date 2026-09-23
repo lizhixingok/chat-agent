@@ -1,50 +1,39 @@
 package com.zx.chat.agent.api.exception;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 
 /**
- * 业务异常。文案在构造时就渲染好，GlobalExceptionHandler 直接取 getMessage() 回给调用方。
+ * 业务异常。code 用于机器判断，message 是直接回给调用方的中文文案，
+ * GlobalExceptionHandler 取这两个值拼成 RespResult。
  *
- * <p>args 填充 {@link ErrorCode} 文案里的 {@code %s} 占位符，
- * 个数对不上时退回未渲染的原始文案，不让格式化异常盖掉真正的业务错误。
+ * <p>code 一律取自 {@link BaseResultCode}，不再自建错误码表。判断标准是
+ * 「调用方会不会因为这个码走不同的代码分支」：
+ * <ul>
+ *   <li>会 —— 比如登录态失效要跳登录页，用 {@link BaseResultCode#AUTH_FAILD_CODE} 这类明确的码；</li>
+ *   <li>不会 —— 调用方只会把 message 弹出来，走默认的
+ *       {@link BaseResultCode#BASE_ERROR_CODE}(101)，文案说清楚就够了。</li>
+ * </ul>
+ *
+ * <p>B 端服务不做多语言，文案在抛出点写死中文，带变量的直接字符串拼接。
  */
 public class BizException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    private static final Object[] NO_ARGS = new Object[0];
 
-    private final ErrorCode errorCode;
-    private final Object[] args;
+    private final int code;
 
-    public BizException(ErrorCode errorCode) {
-        this(errorCode, NO_ARGS);
+    /** 通用业务错误：调用方不分支，只弹 message。 */
+    public BizException(String message) {
+        this(BaseResultCode.BASE_ERROR_CODE, message);
     }
 
-    public BizException(ErrorCode errorCode, Object... args) {
-        super(render(errorCode, args));
-        this.errorCode = errorCode;
-        this.args = (args == null || args.length == 0) ? NO_ARGS : args.clone();
+    /** 调用方需要按 code 走不同分支时用，code 取 BaseResultCode 的常量。 */
+    public BizException(int code, String message) {
+        super(message);
+        this.code = code;
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    public Object[] getArgs() {
-        return args.clone();
-    }
-
-    /** 用 args 填充文案占位符。无参或格式化失败时返回原始文案。 */
-    private static String render(ErrorCode errorCode, Object[] args) {
-        String template = errorCode.getMessage();
-        if (args == null || args.length == 0) {
-            return template;
-        }
-        try {
-            return String.format(template, args);
-        } catch (RuntimeException ignored) {
-            // 占位符与 args 个数/类型不匹配。文案不完美好过抛异常掩盖原始业务错误
-            return template;
-        }
+    public int getCode() {
+        return code;
     }
 }

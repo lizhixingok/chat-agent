@@ -1,6 +1,5 @@
 package com.zx.chat.agent.service.service.impl;
 
-import com.zx.chat.agent.api.common.ErrorCode;
 import com.zx.chat.agent.api.dto.req.DemoCreateReqDTO;
 import com.zx.chat.agent.api.dto.resp.DemoRespDTO;
 import com.zx.chat.agent.api.exception.BizException;
@@ -46,8 +45,7 @@ public class DemoServiceImpl implements DemoService {
     public DemoRespDTO findById(Long id) {
         DemoRespDTO resp = store.get(id);
         if (resp == null) {
-            // 两个占位符对应文案 "{0} with id {1} was not found"
-            throw new BizException(ErrorCode.RESOURCE_NOT_FOUND, "Demo", id);
+            throw new BizException("Demo 不存在：" + id);
         }
         return resp;
     }

@@ -1,22 +1,24 @@
 package com.zx.chat.agent.service.infra.http;
 
-import com.zx.chat.agent.api.common.ErrorCode;
 import com.zx.chat.agent.api.exception.BizException;
 
 /**
- * 第三方 HTTP 调用失败。统一挂在 THIRD_PARTY_ERROR 错误码下，
- * 对外只暴露错误码文案，状态码与响应体仅用于日志排查。
+ * 第三方 HTTP 调用失败。对外只暴露通用文案，
+ * 状态码与响应体仅用于日志排查，避免把上游细节透给调用方。
  */
 public class HttpClientException extends BizException {
 
     private static final long serialVersionUID = 1L;
+
+    /** 对外文案。上游的状态码、响应体都不进这里。 */
+    public static final String MESSAGE = "第三方服务调用失败";
 
     private final String detail;
     private final int statusCode;
     private final String responseBody;
 
     public HttpClientException(String detail, int statusCode, String responseBody, Throwable cause) {
-        super(ErrorCode.THIRD_PARTY_ERROR);
+        super(MESSAGE);
         initCause(cause);
         this.detail = detail;
         this.statusCode = statusCode;

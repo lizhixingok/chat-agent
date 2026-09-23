@@ -1,6 +1,6 @@
 package com.zx.chat.agent.service.infra.lock;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.api.exception.LockAcquireFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,8 +112,8 @@ class DistributedLockTest {
 
         assertThatThrownBy(() -> distributedLock.execute("draw:1", 3, 10, () -> "ok"))
                 .isInstanceOf(LockAcquireFailedException.class)
-                .extracting(e -> ((LockAcquireFailedException) e).getErrorCode())
-                .isEqualTo(ErrorCode.LOCK_ACQUIRE_FAILED);
+                .extracting(e -> ((LockAcquireFailedException) e).getCode())
+                .isEqualTo(BaseResultCode.BASE_ERROR_CODE);
     }
 
     @Test
@@ -132,7 +132,7 @@ class DistributedLockTest {
     }
 
     @Test
-    void shouldCarryLockKeyInExceptionArgs() throws InterruptedException {
+    void shouldCarryLockKeyInException() throws InterruptedException {
         when(redissonClient.getLock("lock:draw:1")).thenReturn(rLock);
         when(rLock.tryLock(anyLong(), anyLong(), eq(TimeUnit.SECONDS))).thenReturn(false);
 
@@ -140,8 +140,9 @@ class DistributedLockTest {
                 .isInstanceOf(LockAcquireFailedException.class)
                 .satisfies(e -> {
                     LockAcquireFailedException ex = (LockAcquireFailedException) e;
+                    // lockKey 是内部信息，只留在字段里给日志用，不进对外文案
                     assertThat(ex.getLockKey()).isEqualTo("draw:1");
-                    assertThat(ex.getArgs()).containsExactly("draw:1");
+                    assertThat(ex.getMessage()).doesNotContain("draw:1");
                 });
     }
 

@@ -1,7 +1,7 @@
 package com.zx.chat.agent.provider.handler;
 
 import com.i61.common.bean.bean.RespResult;
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.api.exception.BizException;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,29 +28,22 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void bizExceptionCarriesErrorCodeNumberAndText() {
+    void bizExceptionDefaultsToBaseErrorCodeAndKeepsText() {
         ResponseEntity<RespResult<Void>> res =
-            handler.handleBizException(new BizException(ErrorCode.LOCK_ACQUIRE_FAILED));
+            handler.handleBizException(new BizException("获取锁失败，请重试"));
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.LOCK_ACQUIRE_FAILED.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.BASE_ERROR_CODE);
         assertThat(res.getBody().getMsg()).isEqualTo("获取锁失败，请重试");
     }
 
     @Test
-    void bizExceptionSubstitutesArgsIntoText() {
+    void bizExceptionKeepsExplicitCode() {
         ResponseEntity<RespResult<Void>> res = handler.handleBizException(
-            new BizException(ErrorCode.RESOURCE_NOT_FOUND, "奖品", 42L));
+            new BizException(BaseResultCode.AUTH_FAILD_CODE, "未登录或登录已失效"));
 
-        assertThat(res.getBody().getMsg()).isEqualTo("奖品 不存在：42");
-    }
-
-    @Test
-    void bizExceptionWithoutArgsUsesPlainText() {
-        ResponseEntity<RespResult<Void>> res =
-            handler.handleBizException(new BizException(ErrorCode.PARAM_INVALID));
-
-        assertThat(res.getBody().getMsg()).isEqualTo("参数不合法");
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.AUTH_FAILD_CODE);
+        assertThat(res.getBody().getMsg()).isEqualTo("未登录或登录已失效");
     }
 
     @Test
@@ -65,7 +58,7 @@ class GlobalExceptionHandlerTest {
 
         ResponseEntity<RespResult<Void>> res = handler.handleValidation(ex);
 
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.PARAM_INVALID.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.VALIDATE_ERROR_CODE);
         assertThat(res.getBody().getMsg()).contains("must not be blank");
     }
 
@@ -76,7 +69,7 @@ class GlobalExceptionHandlerTest {
 
         ResponseEntity<RespResult<Void>> res = handler.handleBindException(new BindException(binding));
 
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.PARAM_INVALID.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.VALIDATE_ERROR_CODE);
         assertThat(res.getBody().getMsg()).contains("must be between 1 and 100");
     }
 
@@ -85,7 +78,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<RespResult<Void>> res =
             handler.handleConstraintViolation(new ConstraintViolationException("pageSize: must be positive", Set.of()));
 
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.PARAM_INVALID.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.VALIDATE_ERROR_CODE);
     }
 
     @Test
@@ -93,7 +86,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<RespResult<Void>> res = handler.handleUnreadable(
             new HttpMessageNotReadableException("Unexpected end-of-input", (org.springframework.http.HttpInputMessage) null));
 
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.PARAM_INVALID.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.VALIDATE_ERROR_CODE);
         assertThat(res.getBody().getMsg()).isEqualTo("参数不合法");
     }
 
@@ -102,7 +95,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<RespResult<Void>> res = handler.handleAny(
             new IllegalStateException("jdbc:mysql://prod-db:3306 connection refused, password=secret"));
 
-        assertThat(res.getBody().getCode()).isEqualTo(ErrorCode.SYSTEM_ERROR.getCode());
+        assertThat(res.getBody().getCode()).isEqualTo(BaseResultCode.BASE_ERROR_CODE);
         assertThat(res.getBody().getMsg()).isEqualTo("系统异常，请稍后重试");
         assertThat(res.getBody().getMsg()).doesNotContain("jdbc", "password", "secret");
     }

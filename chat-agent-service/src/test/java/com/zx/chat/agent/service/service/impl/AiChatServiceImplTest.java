@@ -1,6 +1,6 @@
 package com.zx.chat.agent.service.service.impl;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.api.exception.BizException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +51,9 @@ class AiChatServiceImplTest {
 
         assertThatThrownBy(() -> service.chat("你好"))
             .isInstanceOf(BizException.class)
-            .satisfies(ex -> assertThat(((BizException) ex).getErrorCode())
-                .isEqualTo(ErrorCode.THIRD_PARTY_ERROR))
-            .hasMessage(ErrorCode.THIRD_PARTY_ERROR.getMessage())
+            .satisfies(ex -> assertThat(((BizException) ex).getCode())
+                .isEqualTo(BaseResultCode.BASE_ERROR_CODE))
+            .hasMessage("第三方服务调用失败")
             .hasMessageNotContaining("secret");
     }
 
@@ -64,9 +64,9 @@ class AiChatServiceImplTest {
 
         assertThatThrownBy(() -> service.stream("你好").blockLast())
             .isInstanceOf(BizException.class)
-            .satisfies(ex -> assertThat(((BizException) ex).getErrorCode())
-                .isEqualTo(ErrorCode.THIRD_PARTY_ERROR))
-            .hasMessage(ErrorCode.THIRD_PARTY_ERROR.getMessage())
+            .satisfies(ex -> assertThat(((BizException) ex).getCode())
+                .isEqualTo(BaseResultCode.BASE_ERROR_CODE))
+            .hasMessage("第三方服务调用失败")
             .hasMessageNotContaining("secret");
     }
 }

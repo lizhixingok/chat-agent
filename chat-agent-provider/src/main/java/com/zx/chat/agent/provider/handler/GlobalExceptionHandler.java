@@ -1,7 +1,7 @@
 package com.zx.chat.agent.provider.handler;
 
 import com.i61.common.bean.bean.RespResult;
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.api.exception.BizException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.stream.Collectors;
 
 /**
- * 全局异常处理。所有异常统一转成 RespResult，文案取自 ErrorCode（中文，不做多语言）。
+ * 全局异常处理。所有异常统一转成 RespResult，code 取自 {@link BaseResultCode}，
+ * 文案为中文（不做多语言）。
  *
  * <p>业务异常返回 HTTP 200（业务语义错误不是传输层错误，由 body 里的 code 表达），
  * 未预期异常返回 HTTP 500。
@@ -30,12 +31,16 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /** 业务异常。文案在 BizException 构造时已渲染好，这里直接取。 */
+    /** 兜底文案。未预期异常的细节只进日志，不进响应。 */
+    private static final String SYSTEM_ERROR_MSG = "系统异常，请稍后重试";
+    /** 参数校验失败的通用文案，具体字段拼在后面。 */
+    private static final String PARAM_INVALID_MSG = "参数不合法";
+
+    /** 业务异常。code 与文案在 BizException 构造时已定好，这里直接取。 */
     @ExceptionHandler(BizException.class)
     public ResponseEntity<RespResult<Void>> handleBizException(BizException ex) {
-        ErrorCode code = ex.getErrorCode();
-        log.warn("business exception: code={} msg={}", code.getCode(), ex.getMessage());
-        return respond(HttpStatus.OK, code.getCode(), ex.getMessage());
+        log.warn("business exception: code={} msg={}", ex.getCode(), ex.getMessage());
+        return respond(HttpStatus.OK, ex.getCode(), ex.getMessage());
     }
 
     /** @RequestBody 上的 @Valid 校验失败。 */
@@ -73,15 +78,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RespResult<Void>> handleAny(Exception ex) {
         // 未预期异常必须记完整堆栈，但响应里只给通用文案，避免泄漏连接串、密码等内部信息
         log.error("unhandled exception", ex);
-        return respond(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.SYSTEM_ERROR.getCode(),
-            ErrorCode.SYSTEM_ERROR.getMessage());
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR,
+            BaseResultCode.BASE_ERROR_CODE, SYSTEM_ERROR_MSG);
     }
 
     /** detail 为 null 时用通用文案，否则拼在通用文案之后。 */
     private ResponseEntity<RespResult<Void>> paramInvalid(String detail) {
-        String base = ErrorCode.PARAM_INVALID.getMessage();
-        String msg = (detail == null || detail.isBlank()) ? base : base + ": " + detail;
-        return respond(HttpStatus.OK, ErrorCode.PARAM_INVALID.getCode(), msg);
+        String msg = (detail == null || detail.isBlank())
+            ? PARAM_INVALID_MSG : PARAM_INVALID_MSG + ": " + detail;
+        return respond(HttpStatus.OK, BaseResultCode.VALIDATE_ERROR_CODE, msg);
     }
 
     /** 把校验结果拼成一行，字段名 + 消息，多个用分号隔开。 */

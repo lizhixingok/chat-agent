@@ -1,6 +1,6 @@
 package com.zx.chat.agent.provider.controller;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.provider.controller.outer.DemoController;
 import com.zx.chat.agent.provider.handler.GlobalExceptionHandler;
 import com.zx.chat.agent.service.service.impl.DemoServiceImpl;
@@ -62,7 +62,7 @@ class DemoControllerTest {
                 .content("{\"name\":\"\",\"score\":10}"))
             // 业务语义错误仍是 HTTP 200，错误在 body 的 code 里
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(ErrorCode.PARAM_INVALID.getCode()));
+            .andExpect(jsonPath("$.code").value(BaseResultCode.VALIDATE_ERROR_CODE));
     }
 
     @Test
@@ -70,7 +70,7 @@ class DemoControllerTest {
         mockMvc.perform(post("/demo/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"bob\",\"score\":999}"))
-            .andExpect(jsonPath("$.code").value(ErrorCode.PARAM_INVALID.getCode()));
+            .andExpect(jsonPath("$.code").value(BaseResultCode.VALIDATE_ERROR_CODE));
     }
 
     @Test
@@ -78,14 +78,14 @@ class DemoControllerTest {
         mockMvc.perform(post("/demo/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":"))
-            .andExpect(jsonPath("$.code").value(ErrorCode.PARAM_INVALID.getCode()));
+            .andExpect(jsonPath("$.code").value(BaseResultCode.VALIDATE_ERROR_CODE));
     }
 
     @Test
     void missingIdReturnsResourceNotFound() throws Exception {
         mockMvc.perform(get("/demo/999"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.getCode()))
+            .andExpect(jsonPath("$.code").value(BaseResultCode.BASE_ERROR_CODE))
             .andExpect(jsonPath("$.msg").value("Demo 不存在：999"));
     }
 
@@ -111,7 +111,7 @@ class DemoControllerTest {
     void unexpectedExceptionReturns500WithGenericMessage() throws Exception {
         mockMvc.perform(get("/demo/boom"))
             .andExpect(status().isInternalServerError())
-            .andExpect(jsonPath("$.code").value(ErrorCode.SYSTEM_ERROR.getCode()))
+            .andExpect(jsonPath("$.code").value(BaseResultCode.BASE_ERROR_CODE))
             .andExpect(jsonPath("$.msg").value("系统异常，请稍后重试"))
             // 兜底分支绝不能把原始异常信息带出去
             .andExpect(jsonPath("$.msg").value(

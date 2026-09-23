@@ -1,6 +1,6 @@
 package com.zx.chat.agent.provider.controller;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import com.zx.chat.agent.api.exception.BizException;
 import com.zx.chat.agent.provider.controller.outer.AiChatController;
 import com.zx.chat.agent.provider.filter.RequestLogFilter;
@@ -63,7 +63,7 @@ class AiChatControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"message\":\" \"}"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(ErrorCode.PARAM_INVALID.getCode()));
+            .andExpect(jsonPath("$.code").value(BaseResultCode.VALIDATE_ERROR_CODE));
     }
 
     @ParameterizedTest
@@ -75,7 +75,7 @@ class AiChatControllerTest {
                 .content(body))
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.code").value(ErrorCode.PARAM_INVALID.getCode()))
+            .andExpect(jsonPath("$.code").value(BaseResultCode.VALIDATE_ERROR_CODE))
             .andExpect(jsonPath("$.msg").value(org.hamcrest.Matchers.containsString("message")));
 
         verifyNoInteractions(aiChatService);
@@ -130,7 +130,7 @@ class AiChatControllerTest {
     @Test
     void streamConvertsUpstreamFailureToSafeErrorEvent() throws Exception {
         when(aiChatService.stream("你好"))
-            .thenReturn(Flux.error(new BizException(ErrorCode.THIRD_PARTY_ERROR)));
+            .thenReturn(Flux.error(new BizException("第三方服务调用失败")));
 
         MvcResult pending = mockMvc.perform(post("/o/v1/chat/completions/stream")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -147,7 +147,7 @@ class AiChatControllerTest {
     @Test
     void streamConvertsSynchronousServiceFailureToSafeErrorEvent() throws Exception {
         when(aiChatService.stream("你好"))
-            .thenThrow(new BizException(ErrorCode.THIRD_PARTY_ERROR));
+            .thenThrow(new BizException("第三方服务调用失败"));
 
         MvcResult pending = mockMvc.perform(post("/o/v1/chat/completions/stream")
                 .contentType(MediaType.APPLICATION_JSON)

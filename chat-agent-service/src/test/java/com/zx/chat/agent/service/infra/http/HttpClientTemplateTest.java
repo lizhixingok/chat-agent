@@ -1,6 +1,6 @@
 package com.zx.chat.agent.service.infra.http;
 
-import com.zx.chat.agent.api.common.ErrorCode;
+import com.i61.common.bean.exception.BaseResultCode;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,7 +125,7 @@ class HttpClientTemplateTest {
             .isInstanceOf(HttpClientException.class)
             .satisfies(e -> {
                 HttpClientException ex = (HttpClientException) e;
-                assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.THIRD_PARTY_ERROR);
+                assertThat(ex.getCode()).isEqualTo(BaseResultCode.BASE_ERROR_CODE);
                 assertThat(ex.getStatusCode()).isEqualTo(502);
                 assertThat(ex.getResponseBody()).contains("upstream down");
             });
@@ -142,7 +142,7 @@ class HttpClientTemplateTest {
             .isInstanceOf(HttpClientException.class)
             .satisfies(e -> {
                 HttpClientException ex = (HttpClientException) e;
-                assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.THIRD_PARTY_ERROR);
+                assertThat(ex.getCode()).isEqualTo(BaseResultCode.BASE_ERROR_CODE);
                 assertThat(ex.getStatusCode()).isZero();
                 assertThat(ex.getCause()).isNotNull();
             });
@@ -159,7 +159,7 @@ class HttpClientTemplateTest {
             .isInstanceOf(HttpClientException.class)
             .satisfies(e -> {
                 HttpClientException ex = (HttpClientException) e;
-                assertThat(ex.getMessage()).isEqualTo(ErrorCode.THIRD_PARTY_ERROR.getMessage());
+                assertThat(ex.getMessage()).isEqualTo(HttpClientException.MESSAGE);
                 assertThat(ex.getMessage()).doesNotContain("password", "jdbc");
             });
     }

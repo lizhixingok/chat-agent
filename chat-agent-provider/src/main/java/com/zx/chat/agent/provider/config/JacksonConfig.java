@@ -44,8 +44,6 @@ public class JacksonConfig {
         return builder -> builder
             // Long 超过 2^53 时 JavaScript 会丢精度，统一转字符串。
             // 只处理包装类型 Long，不动 int/Integer
-            .serializerByType(Long.class, ToStringSerializer.instance)
-            .serializerByType(Long.TYPE, ToStringSerializer.instance)
             .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(dateTime))
             .serializerByType(LocalDate.class, new LocalDateSerializer(date))
             .serializerByType(LocalTime.class, new LocalTimeSerializer(time))
