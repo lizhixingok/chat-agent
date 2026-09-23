@@ -53,5 +53,9 @@ Thumbs.db
 *.tar.gz
 *.rar
 
+
+docs/
+
+
 # Spring Boot
 spring-boot-devtools.properties
