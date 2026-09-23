@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 无parent继承，独立模块 -->
+    <groupId>com.zx.chat-agent</groupId>
+    <artifactId>chat-agent-api</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>chat-agent-api</name>
+    <description>API层 - Feign接口定义，供其他服务调用</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <spring-cloud-openfeign.version>4.1.3</spring-cloud-openfeign.version>
+        <jackson-annotations.version>2.15.4</jackson-annotations.version>
+        <i61-common-core.version>1.4.0</i61-common-core.version>
+        <lombok.version>1.18.30</lombok.version>
+        <!-- 8.x 才是 jakarta.validation 命名空间。6.x 是 javax.*，DTO 上写
+             jakarta 注解会直接编译不过，且与 provider 侧的 Boot 3 校验引擎不是同一套 -->
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
+        <junit-jupiter.version>5.10.5</junit-jupiter.version>
+        <assertj.version>3.24.2</assertj.version>
+        <byte-buddy.version>1.14.19</byte-buddy.version>
+    </properties>
+
+    <dependencies>
+        <!-- Feign - 核心依赖，用于定义内部API接口 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <version>${spring-cloud-openfeign.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Jackson 注解 - 用于JSON序列化配置 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-annotations.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- i61 Common Core - 响应包装类 RespResult/PageResult -->
+        <dependency>
+            <groupId>com.i61</groupId>
+            <artifactId>i61-common-core</artifactId>
+            <version>${i61-common-core.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Hibernate Validator - 用于DTO参数校验 -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- AssertJ 3.24.2 默认拉 byte-buddy 1.12.21，本地未缓存、离线拉不到。
+             api 模块无 parent 兜不到 Boot BOM，必须手动排除并钉到已缓存的 1.14.19
+             （正是 Boot 3.2.12 管理的版本） -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${byte-buddy.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Nexus Release Repository</name>
+            <url>http://nexus.server.i61.com:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Nexus Snapshot Repository</name>
+            <url>http://nexus.server.i61.com:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <!-- 源码插件，发布时附带源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

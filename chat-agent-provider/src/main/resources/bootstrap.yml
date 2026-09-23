@@ -1,0 +1,20 @@
+## Apollo 配置中心
+#apollo:
+#  bootstrap:
+#    enabled: true
+#    namespaces: application,application.yml,support.chat-agent-datasource,support.hystrix,support.ribbon,support.eureka,support.actuator
+#    eagerLoad:
+#      enabled: true
+#  meta: http://config.test.61info.cn:9012
+#  cluster: default
+
+# 应用 ID
+app:
+  id: chat-agent
+
+# Spring 配置
+spring:
+  profiles:
+    active: dev
+  application:
+    name: chat-agent

@@ -1,0 +1,127 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: chat-agent
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    # UTC 是唯一真理来源：DB 存 UTC，业务计算/比较/排序全在 UTC 下完成。
+    # 不设 date-format —— 它会让 java.util.Date 输出成无时区标识的字符串，前端无法
+    # 判断是 UTC 还是本地时间，UTC 语义在出口处就破了。
+    # 注意：time-zone 只影响 OffsetDateTime/ZonedDateTime/java.util.Date，
+    # 对 LocalDateTime 和 Instant 无效（已实测），真正决定性的是实体类用什么时间类型。
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+  datasource:
+    dynamic:
+      primary: chat-agent
+      # @DS 名字不存在时直接抛 CannotFindDataSourceException。
+      # 默认 false 会静默回落到 primary，等于写进错库且没有任何日志提示
+      strict: true
+      datasource:
+        chat-agent:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://127.0.0.1:3306/chat-agent?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&preserveInstants=true
+          username: root
+          password: root123
+        # 追加独立库时复制上面的结构。名字不要带下划线 —— 下划线是分组符，
+        # order_master / order_slave1 会被合并成 order 组做读写分离，不是独立库
+        # 用 @DS("happy-draw-core") 切到这里。连接串参数必须和 draw 完全一致，
+        # 少一个 connectionTimeZone=UTC 就会让这个库的时间语义和 draw 不一样
+      # 连接池全局默认。键名对应 dynamic-datasource 的 DruidConfig 字段（camelCase → kebab-case），
+      druid:
+        initial-size: 5
+        min-idle: 5
+        max-active: 20
+        max-wait: 3000
+        validation-query: SELECT 1
+        test-while-idle: true
+        test-on-borrow: false
+        keep-alive: true
+        time-between-eviction-runs-millis: 60000
+        # 只开 stat。不加 wall —— wall 默认 multiStatementAllow=false，
+        # 与连接串的 allowMultiQueries=true 直接对立，正常多语句会在运行期被拦
+        filters: stat
+    # Druid 监控页：关闭。这组键走 starter 自己的 DruidStatProperties，
+    # 前缀是 spring.datasource.druid（不带 dynamic），与上面的池参数是两套
+    druid:
+      stat-view-servlet:
+        enabled: true
+      web-stat-filter:
+        enabled: true
+
+  # Redisson 直接读 spring.data.redis，不需要额外的 redisson.yaml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 2
+          max-wait: 3000ms
+
+# MyBatis 配置
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:/mapper/**/*.xml
+
+# PageHelper 分页
+pagehelper:
+  helperDialect: mysql
+  params: count=countSql
+  reasonable: false
+  supportMethodsArguments: true
+
+# Knife4j API文档
+knife4j:
+  enable: true
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+# Actuator 监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      rabbit:
+        enabled: false
+      show-details: when-authorized
+      enabled: false
+
+# Eureka 配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-001-test.61info.cn/eureka
+    register-with-eureka: true
+    fetch-registry: true
+    enabled: false
+  instance:
+    prefer-ip-address: true
+
+# 基础设施配置
+chat-agent:
+  http-client:
+    # 第三方出站调用。这些值按对接方的 SLA 调，不要照抄
+    connect-timeout-millis: 3000
+    read-timeout-millis: 10000
+    # 池子打满时借连接的等待上限，靠它快速失败而不是无限排队
+    connection-request-timeout-millis: 2000
+    max-total-connections: 200
+    # 单主机上限，防止一个慢第三方吃掉整个池子
+    max-connections-per-route: 50
+    idle-connection-timeout-seconds: 30
