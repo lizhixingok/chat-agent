@@ -103,13 +103,13 @@ curl -N -X POST http://localhost:8081/o/v1/chat/completions/stream \
 
 ## API文档
 
-启动后访问：http://localhost:9090/doc.html
+启动后访问：http://localhost:8081/doc.html
 
 ## 配置说明
 
 ### 端口配置
 
-默认端口：9090，可在 application.yml 中修改。
+默认端口：8081，可在 application.yml 中修改。
 
 ### Apollo 配置中心
 
