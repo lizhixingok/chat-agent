@@ -90,4 +90,22 @@ class AiChatControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().string("event:error\ndata:AI 服务暂时不可用\n\n"));
     }
+
+    @Test
+    void streamConvertsSynchronousServiceFailureToSafeErrorEvent() throws Exception {
+        when(aiChatService.stream("你好"))
+            .thenThrow(new BizException(ErrorCode.THIRD_PARTY_ERROR));
+
+        MvcResult pending = mockMvc.perform(post("/o/v1/chat/completions/stream")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .content("{\"message\":\"你好\"}"))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        mockMvc.perform(asyncDispatch(pending))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM))
+            .andExpect(content().string("event:error\ndata:AI 服务暂时不可用\n\n"));
+    }
 }
