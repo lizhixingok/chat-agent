@@ -106,7 +106,7 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-001-test.61info.cn/eureka
+      defaultZone: http://127.0.0.1/eureka
     register-with-eureka: true
     fetch-registry: true
     enabled: false

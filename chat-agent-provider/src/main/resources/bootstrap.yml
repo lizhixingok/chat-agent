@@ -5,7 +5,7 @@
 #    namespaces: application,application.yml,support.chat-agent-datasource,support.hystrix,support.ribbon,support.eureka,support.actuator
 #    eagerLoad:
 #      enabled: true
-#  meta: http://config.test.61info.cn:9012
+#  meta: http://xxxx:9012
 #  cluster: default
 
 # 应用 ID
