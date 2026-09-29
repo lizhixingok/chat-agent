@@ -6,7 +6,7 @@ spring:
     name: chat-agent
   ai:
     openai:
-      api-key: sk-replace-with-your-deepseek-api-key
+      api-key: ${DEEPSEEK_API_KEY:sk-replace-with-your-deepseek-api-key}
       base-url: https://api.deepseek.com
       chat:
         options:
@@ -24,8 +24,6 @@ spring:
     # 注意：time-zone 只影响 OffsetDateTime/ZonedDateTime/java.util.Date，
     # 对 LocalDateTime 和 Instant 无效（已实测），真正决定性的是实体类用什么时间类型。
     time-zone: UTC
-    serialization:
-      write-dates-as-timestamps: false
   datasource:
     dynamic:
       primary: chat-agent
@@ -91,9 +89,7 @@ pagehelper:
   reasonable: false
   supportMethodsArguments: true
 
-# Knife4j API文档
-knife4j:
-  enable: true
+# Springdoc OpenAPI 文档
 springdoc:
   swagger-ui:
     enabled: true

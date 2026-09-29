@@ -39,8 +39,8 @@ public class AiChatController {
     public Flux<ServerSentEvent<String>> stream(@Valid @RequestBody ChatReqDTO req, HttpServletResponse response) {
         response.setContentType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8");
         return Flux.defer(() -> aiChatService.stream(req.getMessage()))
-            .map(chunk -> ServerSentEvent.builder(chunk).event("message").build())
-            .onErrorResume(BizException.class, ex -> Flux.just(
-                ServerSentEvent.builder("AI 服务暂时不可用").event("error").build()));
+                .map(chunk -> ServerSentEvent.builder(chunk).event("message").build())
+                .onErrorResume(BizException.class, ex -> Flux.just(
+                        ServerSentEvent.builder("AI 服务暂时不可用").event("error").build()));
     }
 }

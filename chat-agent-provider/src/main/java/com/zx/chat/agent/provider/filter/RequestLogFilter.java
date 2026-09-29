@@ -36,6 +36,9 @@ public class RequestLogFilter extends OncePerRequestFilter {
     /** body 日志上限，超出截断。避免大报文打爆磁盘 */
     static final int MAX_BODY_CHARS = 2048;
 
+    /** UTF-8 单个 Unicode 码点最多占 4 字节，缓存要能容纳字符截断上限。 */
+    private static final int MAX_BODY_CACHE_BYTES = MAX_BODY_CHARS * 4;
+
     private static final String TRUNCATED = "...(truncated)";
 
     private static final String EMPTY_BODY = "-";
@@ -64,7 +67,8 @@ public class RequestLogFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        ContentCachingRequestWrapper cachedRequest = new ContentCachingRequestWrapper(request);
+        ContentCachingRequestWrapper cachedRequest =
+            new ContentCachingRequestWrapper(request, MAX_BODY_CACHE_BYTES);
         ContentCachingResponseWrapper cachedResponse = new ContentCachingResponseWrapper(response);
         long startNanos = System.nanoTime();
         try {

@@ -17,13 +17,18 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- 2.0.1 的 retry auto-configuration 将核心异常依赖标为 optional，应用需显式引入。 -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-retry</artifactId>
         </dependency>
 
         <!-- 内部模块 -->
@@ -57,10 +62,10 @@
             <artifactId>pagehelper-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Knife4j -->
+        <!-- Springdoc OpenAPI -->
         <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
         <!-- MySQL -->
@@ -82,16 +87,16 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
-        <!-- Druid 连接池 -->
+        <!-- Druid Boot 4 连接池 -->
         <dependency>
             <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-3-starter</artifactId>
+            <artifactId>druid-spring-boot-4-starter</artifactId>
         </dependency>
 
-        <!-- 动态数据源。application.yml 的 spring.datasource.dynamic.* 由它读取 -->
+        <!-- Boot 4 动态数据源。application.yml 的 spring.datasource.dynamic.* 由它读取 -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+            <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
         </dependency>
 
         <!-- HttpClient5 连接池 -->

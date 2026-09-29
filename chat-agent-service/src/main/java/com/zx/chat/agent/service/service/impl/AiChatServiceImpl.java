@@ -2,8 +2,7 @@ package com.zx.chat.agent.service.service.impl;
 
 import com.zx.chat.agent.api.exception.BizException;
 import com.zx.chat.agent.service.service.AiChatService;
-import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.chat.StreamingChatClient;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -11,17 +10,18 @@ import reactor.core.publisher.Flux;
 public class AiChatServiceImpl implements AiChatService {
 
     private final ChatClient chatClient;
-    private final StreamingChatClient streamingChatClient;
 
-    public AiChatServiceImpl(ChatClient chatClient, StreamingChatClient streamingChatClient) {
-        this.chatClient = chatClient;
-        this.streamingChatClient = streamingChatClient;
+    public AiChatServiceImpl(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder.build();
     }
 
     @Override
     public String chat(String message) {
         try {
-            return chatClient.call(message);
+            return chatClient.prompt()
+                .user(message)
+                .call()
+                .content();
         } catch (RuntimeException ex) {
             throw upstreamFailure();
         }
@@ -30,7 +30,10 @@ public class AiChatServiceImpl implements AiChatService {
     @Override
     public Flux<String> stream(String message) {
         try {
-            return streamingChatClient.stream(message)
+            return chatClient.prompt()
+                .user(message)
+                .stream()
+                .content()
                 .filter(chunk -> chunk != null && !chunk.isEmpty())
                 .onErrorMap(RuntimeException.class, ex -> upstreamFailure());
         } catch (RuntimeException ex) {

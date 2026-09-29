@@ -4,7 +4,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,8 +18,8 @@ public class RabbitMQConfig {
      * 消息序列化转换器
      */
     @Bean
-    public Jackson2JsonMessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public JacksonJsonMessageConverter messageConverter() {
+        return new JacksonJsonMessageConverter();
     }
 
     /**

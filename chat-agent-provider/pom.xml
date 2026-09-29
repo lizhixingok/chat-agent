@@ -52,7 +52,7 @@
         </dependency>
 
         <!-- Validation - 提供 hibernate-validator 校验引擎。
-             注意：不能省。knife4j/springdoc 只传递了 jakarta.validation-api（接口），
+             注意：不能省。springdoc 只传递了 jakarta.validation-api（接口），
              缺实现时 @Valid 静默失效且不报错 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -90,9 +90,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <executable>true</executable>
-                </configuration>
                 <executions>
                     <execution>
                         <id>repackage</id>

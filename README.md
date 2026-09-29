@@ -15,10 +15,11 @@ chat-agent/
 ## 技术栈
 
 - Java 21
-- Spring Boot 3.2.12
-- Spring Cloud 2023.0.3
+- Spring Boot 4.0.8
+- Spring Cloud 2025.1.3
+- Spring AI 2.0.1
 - MyBatis + PageHelper
-- Knife4j (OpenAPI 3)
+- Springdoc OpenAPI 3
 - Log4j2
 
 ## 可选组件
@@ -26,7 +27,7 @@ chat-agent/
 - Apollo 配置中心
 - Eureka 服务发现
 - RabbitMQ 消息队列
-- Swagger/Knife4j API文档
+- Swagger UI API文档
 - Log4j2 日志框架
 
 ## 快速开始
@@ -81,8 +82,11 @@ mvnw.cmd clean package -DskipTests
 
 ## DeepSeek 对话接口
 
-将 `chat-agent-provider/src/main/resources/application.yml` 中的
-`spring.ai.openai.api-key` 替换为有效的 DeepSeek API Key，再启动 provider。
+通过环境变量配置有效的 DeepSeek API Key，再启动 provider：
+
+```bash
+export DEEPSEEK_API_KEY=your-deepseek-api-key
+```
 
 同步调用：
 

@@ -1,18 +1,18 @@
 package com.zx.chat.agent.provider.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalTimeDeserializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalTimeSerializer;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,25 +36,27 @@ public class JacksonConfig {
 
     /** 定制全局 ObjectMapper：Long 转字符串、时间用固定格式、忽略 null 与未知字段。 */
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+    public JsonMapperBuilderCustomizer jacksonCustomizer() {
         DateTimeFormatter dateTime = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
         DateTimeFormatter date = DateTimeFormatter.ofPattern(DATE_PATTERN);
         DateTimeFormatter time = DateTimeFormatter.ofPattern(TIME_PATTERN);
+        SimpleModule module = new SimpleModule("chat-agent-json");
+        module.addSerializer(Long.class, new ToStringSerializer(Long.class));
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTime));
+        module.addSerializer(LocalDate.class, new LocalDateSerializer(date));
+        module.addSerializer(LocalTime.class, new LocalTimeSerializer(time));
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(dateTime));
+        module.addDeserializer(LocalDate.class, new LocalDateDeserializer(date));
+        module.addDeserializer(LocalTime.class, new LocalTimeDeserializer(time));
 
         return builder -> builder
             // Long 超过 2^53 时 JavaScript 会丢精度，统一转字符串。
             // 只处理包装类型 Long，不动 int/Integer
-            .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(dateTime))
-            .serializerByType(LocalDate.class, new LocalDateSerializer(date))
-            .serializerByType(LocalTime.class, new LocalTimeSerializer(time))
-            .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(dateTime))
-            .deserializerByType(LocalDate.class, new LocalDateDeserializer(date))
-            .deserializerByType(LocalTime.class, new LocalTimeDeserializer(time))
+            .addModule(module)
             // 不输出 null 字段，减少响应体积
-            .serializationInclusion(JsonInclude.Include.NON_NULL)
-            // 时间不序列化成 epoch 数字
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .changeDefaultPropertyInclusion(inclusion ->
+                inclusion.withValueInclusion(JsonInclude.Include.NON_NULL))
             // 上游加字段时不至于直接 400
-            .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 }

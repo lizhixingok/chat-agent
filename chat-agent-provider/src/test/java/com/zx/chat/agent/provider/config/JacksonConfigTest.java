@@ -1,9 +1,9 @@
 package com.zx.chat.agent.provider.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ class JacksonConfigTest {
 
     @BeforeEach
     void setUp() {
-        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        JsonMapper.Builder builder = JsonMapper.builder();
         new JacksonConfig().jacksonCustomizer().customize(builder);
         mapper = builder.build();
     }

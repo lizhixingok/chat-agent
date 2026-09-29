@@ -38,6 +38,7 @@ replay_pid*
 # Logs
 logs/
 *.log
+.superpowers
 
 #aiCoding
 docs

@@ -14,14 +14,14 @@
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-cloud.version>2023.0.3</spring-cloud.version>
-        <spring-cloud-openfeign.version>4.1.3</spring-cloud-openfeign.version>
+        <spring-cloud.version>2025.1.3</spring-cloud.version>
+        <spring-cloud-openfeign.version>5.0.3</spring-cloud-openfeign.version>
         <jackson-annotations.version>2.15.4</jackson-annotations.version>
         <i61-common-core.version>1.4.0</i61-common-core.version>
         <lombok.version>1.18.30</lombok.version>
         <!-- 8.x 才是 jakarta.validation 命名空间。6.x 是 javax.*，DTO 上写
              jakarta 注解会直接编译不过，且与 provider 侧的 Boot 3 校验引擎不是同一套 -->
-        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
+        <hibernate-validator.version>9.0.1.Final</hibernate-validator.version>
         <junit-jupiter.version>5.10.5</junit-jupiter.version>
         <assertj.version>3.24.2</assertj.version>
         <byte-buddy.version>1.14.19</byte-buddy.version>
@@ -63,7 +63,7 @@
 
         <!-- Hibernate Validator - 用于DTO参数校验 -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate-validator.version}</version>
             <optional>true</optional>
